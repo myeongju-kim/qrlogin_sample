@@ -8,22 +8,16 @@ import com.google.zxing.common.BitMatrix;
 import com.kingmj.qr_login.redis.RedisService;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class AuthService {
 
     private final RedisService redisService;
-    private static final String LOGIN_URL = "http://localhost:7000/login";
+    private static final String LOGIN_URL = "http://172.30.1.65:5173/login";
     private static final String QR_MODE = "qrmode";
 
     public byte[] generateORCode() {
@@ -33,15 +27,14 @@ public class UserService {
         // localhost/login?mode=qrmode&token=token 형태로 URL 생성
         String loginUrl = generateQRUrl(QR_MODE, token);
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             BitMatrix matrix = new MultiFormatWriter()
                 .encode(loginUrl, BarcodeFormat.QR_CODE, 300, 300);
             MatrixToImageWriter.writeToStream(matrix, "PNG", stream);
 
             return stream.toByteArray();
         } catch (IOException | WriterException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("OR 코드 생성 실패", e);
         }
     }
 
