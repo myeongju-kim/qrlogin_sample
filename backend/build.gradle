@@ -26,6 +26,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis' // redis
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation' // bean validation
 	implementation 'com.google.zxing:core:3.5.3' // QR 코드 생성
 	implementation 'com.google.zxing:javase:3.5.3' // QR 이미지 처리
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6' // JWT api interface 제공
