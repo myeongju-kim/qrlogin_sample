@@ -3,6 +3,8 @@ package com.kingmj.qr_login.redis;
 import com.kingmj.qr_login.user.QrTokenStatus;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import com.kingmj.qr_login.user.dto.LoginRequest;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -23,14 +25,15 @@ public class RedisService {
 
     public void createQrToken(String token) {
         String key = TOKEN_PREFIX + token;
-        hashOperations.put(key, "status", QrTokenStatus.APPROVED.getStatus());
+        hashOperations.put(key, "status", QrTokenStatus.PENDING.getStatus());
         redisTemplate.expire(key, DEFAULT_TTL_SECONDS, TimeUnit.SECONDS);
     }
 
-    public void approveQrToken(String token, String userId) {
+    public void approveQrToken(String token, String userId, String accessToken) {
         String key = TOKEN_PREFIX + token;
         hashOperations.put(key, "status", QrTokenStatus.APPROVED.getStatus());
         hashOperations.put(key, "userId", userId);
+        hashOperations.put(key, "accessToken", accessToken);
     }
 
     public String getQrToken(String token, String hashKey) {
@@ -51,7 +54,11 @@ public class RedisService {
         hashOperations.put(key, "password", password);
     }
 
-    public boolean isValidUser(String userId, String password) {
+    public boolean isValidUser(LoginRequest request) {
+        return isValidUser(request.userId(), request.password());
+    }
+
+    private boolean isValidUser(String userId, String password) {
         String key = USER_PREFIX + userId;
 
         String storedPassword = hashOperations.get(key, "password");
