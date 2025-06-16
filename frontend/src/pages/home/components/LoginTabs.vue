@@ -41,6 +41,8 @@
 <script setup>
 import { ref, watch, onBeforeUnmount, computed } from 'vue'
 import { $apiGet } from '@/utils/apiUtils'
+import { setToken } from '@/store/user'
+import { useRouter } from 'vue-router'
 
 const tab = ref('login')
 const userId = ref('')
@@ -48,6 +50,7 @@ const password = ref('')
 const timeLeft = ref(0)
 let timer = null
 const qrCodeUrl = ref('')
+const token = ref('')
 
 const formattedTime = computed(() => {
   const min = String(Math.floor(timeLeft.value / 60)).padStart(2, '0')
@@ -57,17 +60,35 @@ const formattedTime = computed(() => {
 
 const fetchQrCodeImage = async () => {
     try {
-      const blob = await $apiGet('/auth/qrcode', {}, { responseType: 'blob' })
-      qrCodeUrl.value = URL.createObjectURL(blob)
+      const res = await $apiGet('/auth/qrcode')
+      qrCodeUrl.value = 'data:image/png;base64,' + res.qrCodeUrl
+      token.value = res.token
     } catch (err) {
       console.error('QR 코드 이미지 로딩 실패:', err)
     }
+}
+
+const checkLogin = async () => {
+  try {
+    const res = await $apiGet(`/auth/qrcode/${token.value}/login`)
+    if(!res.isSuccess){
+      return
+    }
+    clearInterval(timer)
+    setToken(res.token)
+    window.location.reload()
+  } catch (err) {
+    console.error("알 수 없는 에러 발생:", err)
+  }
 }
 
 const startTimer = () => {
   clearInterval(timer)
   timeLeft.value = 180
   timer = setInterval(() => {
+    if(timeLeft.value % 2 == 0 ){
+      checkLogin()
+    }
     if (timeLeft.value > 0) {
       timeLeft.value--
     } else {

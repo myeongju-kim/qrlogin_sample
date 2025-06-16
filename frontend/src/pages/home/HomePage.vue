@@ -16,14 +16,21 @@
     </VAppBar>
 
     <VContainer class="d-flex" style="gap: 32px; margin-top: 48px;">
-      <div style="flex: 1;">
-        <VTypography variant="h3" class="font-weight-bold" style="color: #005A9C;">
-          컨텐츠 영역
-        </VTypography>
+      <div class="d-flex" style="height: 80vh;">
+        <div class="flex-grow-1 position-relative">
+          <img
+            src="../../assets/image/otani.jpg"
+            alt="오타니"
+            class="headline-img"
+          />
+        <div class="position-absolute headline-text">
+          [속보] 오타니 투수 복귀 임박
+        </div>
       </div>
-
-      <div style="width: 360px;">
-        <LoginTabs />
+      </div>
+      <div class="login-tab">
+        <AfterLoginCard v-if="isExistToken()" />
+        <LoginTabs v-else/>
       </div>
     </VContainer>
   </VContainer>
@@ -31,8 +38,29 @@
 
 <script setup>
 import LoginTabs from './components/LoginTabs.vue'
+import { isExistToken } from '@/store/user';
+import AfterLoginCard from './components/AfterLoginCard.vue';
+
 </script>
 
 <style scoped>
-/* 필요시 추가 */
+.headline-img {
+  width: 80%; 
+  height: 80%; 
+  object-fit: cover;
+}
+.headline-text {
+  top: 0;
+  width: 80%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+.login-tab{
+  width: 500px;
+}
 </style>

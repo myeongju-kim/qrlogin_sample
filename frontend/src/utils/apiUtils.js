@@ -1,3 +1,4 @@
+import { getToken, isExistToken } from '@/store/user'
 import axios from 'axios'
 
 const api = axios.create({
@@ -8,11 +9,13 @@ const api = axios.create({
   },
 })
 
-api.interceptors.request.use(
-  config => {
-    return config
-  },
-  error => Promise.reject(error)
+api.interceptors.request.use(config => {
+  const token = getToken()
+  if(isExistToken()){
+    config.headers.Authorization = token
+  }
+  return config
+  }, error => Promise.reject(error)
 )
 
 api.interceptors.response.use(
@@ -24,6 +27,7 @@ api.interceptors.response.use(
 )
 
 export const $apiGet = (url, params = {}, config = {}) => {
+  
     return api.get(url, {
       params,
       responseType: config.responseType || 'json',

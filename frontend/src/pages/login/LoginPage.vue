@@ -6,10 +6,10 @@
       <VCard outlined width="320">
         <VCardTitle class="justify-center">로그인</VCardTitle>
         <VCardText>
-          <VTextField label="아이디" v-model="userId" outlined dense />
+          <VTextField label="아이디" v-model="loginRequest.userId" outlined dense />
           <VTextField
             label="비밀번호"
-            v-model="password"
+            v-model="loginRequest.password"
             type="password"
             outlined
             dense
@@ -19,17 +19,41 @@
         </VCardText>
       </VCard>
     </div>
-  </template>
+</template>
   
-  <script setup>
-  import { ref } from 'vue'
-  import { VCard, VCardTitle, VCardText, VTextField, VBtn } from 'vuetify/components'
+<script setup>
+import { setToken } from '@/store/user'
+import { $apiPost } from '@/utils/apiUtils'
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { VCard, VCardTitle, VCardText, VTextField, VBtn } from 'vuetify/components'
   
-  const userId = ref('')
-  const password = ref('')
+const router = useRouter()
+const route = useRoute()
+const loginRequest = ref({
+  mode: undefined,
+  token: undefined,
+  userId: '',
+  password: '',
+})
   
-  const login = () => {
-    console.log('로그인 시도:', userId.value, password.value)
-  }
+const login = async () => {
+  loginRequest.value.mode = route.query.mode;
+  loginRequest.value.token = route.query.token;
+  console.log(loginRequest.value)
+
+  try {
+      const res = await $apiPost('/auth/login', loginRequest.value)
+      if(!res.isSuccess){
+        alert(res.message)
+        return
+      }
+      setToken(res.token)
+      const redirectUri = loginRequest.value.mode === 'qrmode' ? '/login/qr-success' : '/'
+      router.push(redirectUri)
+    } catch (err) {
+      alert("로그인 정보를 올바르게 입력해주세요.")
+    }
+}
   </script>
   
