@@ -5,6 +5,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.kingmj.qr_login.exception.QRGenerationException;
 import com.kingmj.qr_login.jwt.JwtHandler;
 import com.kingmj.qr_login.redis.RedisService;
 
@@ -29,6 +30,9 @@ public class AuthService {
     private static final String QR_MODE = "qrmode";
     private static final String STATUS_KEY = "status";
     private static final String ACCESS_TOKEN_KEY = "accessToken";
+    private static final int QR_WIDTH = 300;
+    private static final int QR_HEIGHT = 300;
+    private static final String QR_FORMAT = "PNG";
 
     public String getUserInfo(String token) {
         return jwtHandler.validateTokenAndGetUserId(token);
@@ -52,22 +56,21 @@ public class AuthService {
         redisService.createQrToken(token);
         // localhost/login?mode=qrmode&token=token 형태로 URL 생성
         String loginUrl = generateQRUrl(QR_MODE, token);
-
+        // QR 생성
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             BitMatrix matrix = new MultiFormatWriter()
-                    .encode(loginUrl, BarcodeFormat.QR_CODE, 300, 300);
-            MatrixToImageWriter.writeToStream(matrix, "PNG", stream);
+                    .encode(loginUrl, BarcodeFormat.QR_CODE, QR_WIDTH, QR_HEIGHT);
+            MatrixToImageWriter.writeToStream(matrix, QR_FORMAT, stream);
             String base64Image = Base64.getEncoder().encodeToString(stream.toByteArray());
 
             return QRCodeResponse.of(token, base64Image);
         } catch (IOException | WriterException e) {
-            throw new RuntimeException("OR 코드 생성 실패", e);
+            throw new QRGenerationException("OR 코드 생성 실패", e);
         }
     }
 
     public LoginResponse checkORCodeLogin(String token) {
         String status = redisService.getQrToken(token, STATUS_KEY);
-        System.out.println(status);
         if (!QrTokenStatus.APPROVED.getStatus().equals(status)) {
             return LoginResponse.fail("인증 대기중입니다.");
         }
