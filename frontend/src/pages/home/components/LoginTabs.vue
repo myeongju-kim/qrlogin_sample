@@ -85,17 +85,19 @@ const checkLogin = async () => {
 const startTimer = () => {
   clearInterval(timer)
   timeLeft.value = 180
+
   timer = setInterval(() => {
-    if(timeLeft.value % 2 == 0 ){
+    if (timeLeft.value <= 0) {
+      clearInterval(timer)
+      return
+    }
+    if (timeLeft.value % 3 === 0) {
       checkLogin()
     }
-    if (timeLeft.value > 0) {
-      timeLeft.value--
-    } else {
-      clearInterval(timer)
-    }
+    timeLeft.value--
   }, 1000)
 }
+
 
 watch(tab, (newVal) => {
   if (newVal === 'qrcode') {

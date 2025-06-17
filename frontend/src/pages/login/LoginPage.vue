@@ -40,7 +40,6 @@ const loginRequest = ref({
 const login = async () => {
   loginRequest.value.mode = route.query.mode;
   loginRequest.value.token = route.query.token;
-  console.log(loginRequest.value)
 
   try {
       const res = await $apiPost('/auth/login', loginRequest.value)
